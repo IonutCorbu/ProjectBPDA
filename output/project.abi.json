@@ -1,0 +1,93 @@
+{
+    "buildInfo": {
+        "rustc": {
+            "version": "1.83.0",
+            "commitHash": "90b35a6239c3d8bdabc530a6a0816f7ff89a0aaf",
+            "commitDate": "2024-11-26",
+            "channel": "Stable",
+            "short": "rustc 1.83.0 (90b35a623 2024-11-26)"
+        },
+        "contractCrate": {
+            "name": "project",
+            "version": "0.0.0"
+        },
+        "framework": {
+            "name": "multiversx-sc",
+            "version": "0.53.2"
+        }
+    },
+    "name": "AssigningStudents",
+    "constructor": {
+        "inputs": [
+            {
+                "name": "token_identifier",
+                "type": "TokenIdentifier"
+            }
+        ],
+        "outputs": []
+    },
+    "upgradeConstructor": {
+        "inputs": [],
+        "outputs": []
+    },
+    "endpoints": [
+        {
+            "name": "test_results",
+            "mutability": "readonly",
+            "inputs": [
+                {
+                    "name": "address",
+                    "type": "Address"
+                }
+            ],
+            "outputs": [
+                {
+                    "type": "u64"
+                }
+            ]
+        },
+        {
+            "name": "generate_test",
+            "mutability": "mutable",
+            "inputs": [],
+            "outputs": [
+                {
+                    "type": "array5<array6<u8>>"
+                }
+            ]
+        },
+        {
+            "name": "submit_test",
+            "mutability": "mutable",
+            "inputs": [
+                {
+                    "name": "answers",
+                    "type": "array6<u8>"
+                }
+            ],
+            "outputs": [
+                {
+                    "type": "array5<array12<u8>>"
+                }
+            ]
+        },
+        {
+            "name": "getResults",
+            "mutability": "readonly",
+            "inputs": [
+                {
+                    "name": "address",
+                    "type": "Address"
+                }
+            ],
+            "outputs": [
+                {
+                    "type": "Option<u64>"
+                }
+            ]
+        }
+    ],
+    "esdtAttributes": [],
+    "hasCallback": false,
+    "types": {}
+}

@@ -1,0 +1,28 @@
+[package]
+name = "project"
+version = "0.0.0"
+publish = false
+edition = "2021"
+authors = ["you"]
+
+[lib]
+path = "src/project.rs"
+
+[dependencies]
+numtoa = "0.2.4"
+
+[dependencies.multiversx-sc]
+version = "0.53.2"
+
+[dev-dependencies]
+num-bigint = "0.4"
+
+[dev-dependencies.multiversx-sc-scenario]
+version = "0.53.2"
+
+[workspace]
+members = [
+    ".",
+    "meta",
+    "interactor"
+]
