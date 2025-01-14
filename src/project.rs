@@ -5,19 +5,12 @@ use numtoa::NumToA;
 #[multiversx_sc::contract]
 pub trait AssigningStudents {
     #[init]
-    fn init(&self, token_identifier: TokenIdentifier) {
-        self.token_identifier().set(&token_identifier);
+    fn init(&self) {
         let caller = self.blockchain().get_caller();
         self.test_results(&caller).set(0);
         self.can_submit(&caller).set(false);
-        self.num_tests().set(0);
+        self.num_tests(&caller).set(0);
     }
-
-    #[upgrade]
-    fn upgrade(&self) {}
-
-    #[storage_mapper("token_identifier")]
-    fn token_identifier(&self) -> SingleValueMapper<TokenIdentifier>;
 
     #[storage_mapper("math_tests")]
     fn math_tests(&self, address: &ManagedAddress) -> SingleValueMapper<[[u8; 6]; 5]>;
@@ -30,12 +23,18 @@ pub trait AssigningStudents {
     fn can_submit(&self, address: &ManagedAddress) -> SingleValueMapper<bool>;
 
     #[storage_mapper("num_tests")]
-    fn num_tests(&self) -> SingleValueMapper<u64>;
+    fn num_tests(&self, address: &ManagedAddress) -> SingleValueMapper<u64>;
 
     #[endpoint]
     fn generate_test(&self) -> [[u8; 6]; 5] {
-        require!(self.num_tests().get()<5,"You have already generated 5 tests. You finished your homework.");
-        require!(self.can_submit(&self.blockchain().get_caller()).get()==false,"You have already generated a test. You can't generate another one until you solve it.");
+        require!(
+            self.num_tests(&self.blockchain().get_caller()).get() < 5,
+            "You have already generated 5 tests. You finished your homework."
+        );
+        require!(
+            self.can_submit(&self.blockchain().get_caller()).get() == false,
+            "You have already generated a test. You can't generate another one until you solve it."
+        );
         let mut operations = [[0u8; 6]; 5];
 
         for i in 0..5 {
@@ -55,13 +54,13 @@ pub trait AssigningStudents {
 
                     operation[0] = string1[2] - 48;
                     operation[1] = b' ';
-                    operation[2] = b'-';
+                    operation[2] = b'+';
                     operation[3] = b' ';
                     operation[4] = string2[2] - 48;
                 }
                 1 => {
                     let mut string1 = [0u8; 3];
-                    num1.numtoa_str(10, &mut string1); 
+                    num1.numtoa_str(10, &mut string1);
 
                     let mut string2 = [0u8; 3];
                     num2.numtoa_str(10, &mut string2);
@@ -108,9 +107,9 @@ pub trait AssigningStudents {
 
         let caller = self.blockchain().get_caller();
         self.math_tests(&caller).set(operations);
-        self.num_tests().set(self.num_tests().get() + 1);
+        self.num_tests(&caller)
+            .set(self.num_tests(&caller).get() + 1);
         self.can_submit(&caller).set(true);
-
 
         operations
     }
@@ -123,11 +122,14 @@ pub trait AssigningStudents {
 
     #[endpoint]
     fn submit_test(&self, answers: [u8; 6]) -> [[u8; 12]; 5] {
-        require!(self.can_submit(&self.blockchain().get_caller()).get()==true,"You have already submitted your answers. You can't submit again.");
+        require!(
+            self.can_submit(&self.blockchain().get_caller()).get(),
+            "You have already submitted your answers. You can't submit again."
+        );
         let caller = self.blockchain().get_caller();
         let test = self.math_tests(&caller).get();
 
-        let mut feedback = [[0u8; 12]; 5]; 
+        let mut feedback = [[0u8; 12]; 5];
         let mut score = self.test_results(&caller).get();
 
         for i in 0..5 {
@@ -141,10 +143,10 @@ pub trait AssigningStudents {
                 idx += 1;
             }
 
-            let correct_result: i8 = self.solve_operation(&operation_str_bytes); 
+            let correct_result: i8 = self.solve_operation(&operation_str_bytes);
 
             let mut feedback_str = [0u8; 12];
-            let mut idx = 0; 
+            let mut idx = 0;
 
             let value: i8 = if answers[i] > 127 {
                 (answers[i] as i16 - 256) as i8
@@ -181,12 +183,11 @@ pub trait AssigningStudents {
         feedback
     }
 
-
     fn solve_operation(&self, operation: &[u8; 6]) -> i8 {
         let left: i8;
         let right: i8;
         left = operation[0] as i8;
-        right = operation[4] as i8; 
+        right = operation[4] as i8;
 
         match operation[2] {
             b'+' => left + right as i8,
@@ -194,22 +195,12 @@ pub trait AssigningStudents {
             b'*' => left * right as i8,
             b'/' => {
                 if right == 0 {
-                    0 
+                    0
                 } else {
                     left / right as i8
                 }
             }
-            _ => 0, 
-        }
-    }
-
-    #[view(getResults)]
-    fn get_results(&self, address: ManagedAddress) -> Option<u64> {
-        let result = self.test_results(&address).get();
-        if result != 0 {
-            Some(result)
-        } else {
-            None
+            _ => 0,
         }
     }
 }
